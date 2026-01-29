@@ -58,3 +58,4 @@ This project description emphasizes your role in leveraging AWS EC2, Kubernetes,
 ### Aapke DevOps Wale Bhaiya
 ### [TrainWithShubham](https://www.trainwithshubham.com/)
 
+## Deployment Notes
