@@ -1,0 +1,17 @@
+{
+  "default": true,
+  "header": false,
+  "line-length": 100,
+  "no-hard-tabs": true,
+  "ul-indent": {
+    "indent": 2
+  },
+  "ul-start-left": false,
+  "no-multiple-blanks": true,
+  "no-trailing-spaces": true,
+  "commands-show-output": false,
+  "code-blocks": false,
+  "emphasis-markers": "*",
+  "link-fragments": false,
+  "no-inline-html": true
+}

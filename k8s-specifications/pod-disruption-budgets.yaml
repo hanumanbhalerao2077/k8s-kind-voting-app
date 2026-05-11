@@ -1,0 +1,38 @@
+---
+# PodDisruptionBudget for Vote Service
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: vote-pdb
+  namespace: default
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: vote
+
+---
+# PodDisruptionBudget for Result Service
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: result-pdb
+  namespace: default
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: result
+
+---
+# PodDisruptionBudget for Worker Service
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: worker-pdb
+  namespace: default
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: worker

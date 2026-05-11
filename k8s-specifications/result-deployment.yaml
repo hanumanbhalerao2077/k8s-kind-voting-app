@@ -3,9 +3,16 @@ kind: Deployment
 metadata:
   labels:
     app: result
+    version: v1
   name: result
+  namespace: default
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: result
@@ -13,10 +20,72 @@ spec:
     metadata:
       labels:
         app: result
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
     spec:
+      serviceAccountName: result
+      securityContext:
+        runAsNonRoot: false
+        fsGroup: 1000
       containers:
-      - image: dockersamples/examplevotingapp_result
+      - image: dockersamples/examplevotingapp_result:latest
+        imagePullPolicy: IfNotPresent
         name: result
         ports:
         - containerPort: 80
-          name: result
+          name: http
+          protocol: TCP
+        env:
+        - name: LOG_LEVEL
+          value: "info"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+          capabilities:
+            drop:
+              - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - result
+              topologyKey: kubernetes.io/hostname

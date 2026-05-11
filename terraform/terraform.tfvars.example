@@ -1,0 +1,23 @@
+# Terraform.tfvars - Example Configuration
+# Copy this file to terraform.tfvars and customize for your environment
+
+aws_region    = "us-east-1"
+environment   = "dev"
+key_pair_name = "voting-app"  # Replace with your EC2 key pair name
+instance_type = "t3.large"
+instance_count = 1
+
+# SSH access - restrict this in production!
+allowed_ssh_cidr = ["0.0.0.0/0"]  # Change to your IP, e.g., ["203.0.113.0/32"]
+
+root_volume_size = 50
+docker_version   = "latest"
+kubectl_version  = "latest"
+kind_version     = "latest"
+
+enable_monitoring = true
+
+tags = {
+  CostCenter = "DevOps"
+  Owner      = "DevOps-Team"
+}

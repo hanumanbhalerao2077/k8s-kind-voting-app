@@ -1,0 +1,98 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'k8s-specifications/**'
+      - '.github/workflows/deploy.yml'
+  workflow_run:
+    workflows: ["Build and Push Docker Images"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Install Argo CD CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/
+
+      - name: Configure kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Validate Kubernetes manifests
+        run: |
+          kubectl apply --dry-run=client -f k8s-specifications/
+
+      - name: Apply Kubernetes manifests
+        run: |
+          kubectl apply -f k8s-specifications/
+
+      - name: Wait for deployments
+        run: |
+          kubectl rollout status deployment/vote -n default --timeout=5m || true
+          kubectl rollout status deployment/result -n default --timeout=5m || true
+          kubectl rollout status deployment/worker -n default --timeout=5m || true
+          kubectl rollout status deployment/postgres -n default --timeout=5m || true
+          kubectl rollout status deployment/redis -n default --timeout=5m || true
+
+      - name: Get deployment status
+        if: always()
+        run: |
+          kubectl get deployments -A
+          kubectl get pods -A
+          kubectl get services -A
+
+      - name: Create Argo CD Application (if not exists)
+        run: |
+          argocd login ${{ secrets.ARGOCD_SERVER }} \
+            --username=${{ secrets.ARGOCD_USERNAME }} \
+            --password=${{ secrets.ARGOCD_PASSWORD }} \
+            --insecure
+          
+          argocd app create voting-app \
+            --repo https://github.com/${{ github.repository }} \
+            --path k8s-specifications \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace default \
+            --sync-policy automated \
+            --auto-prune \
+            --self-heal \
+            2>/dev/null || argocd app sync voting-app
+
+      - name: Slack notification
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Kubernetes deployment ${{ job.status }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Deployment Status*: ${{ job.status }}\n*Repository*: ${{ github.repository }}\n*Branch*: ${{ github.ref }}\n*Commit*: ${{ github.sha }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

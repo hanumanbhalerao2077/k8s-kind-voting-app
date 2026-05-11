@@ -1,0 +1,62 @@
+extends:
+  - config:base
+
+# Enable renovate for all dependency types
+enabledManagers:
+  - dockerfile
+  - docker-compose
+  - pip
+  - npm
+  - csharp
+  - kubernetes
+
+# Schedule for automatic updates
+schedule:
+  - matchUpdateTypes:
+      - minor
+      - patch
+    schedule: "after 10pm every weekday before 5am"
+  - matchUpdateTypes:
+      - major
+    schedule: "after 10pm on sunday"
+
+# Auto-merge minor and patch updates
+automerge: true
+automergeType: pr
+automergeStrategy: squash
+requiredStatusChecks:
+  - "Build and Push Docker Images"
+  - "Testing"
+  - "Code Quality"
+
+# Group updates
+groupName: all dependencies
+groupSlug: all-deps
+
+# Ignore dev dependencies for application code
+ignoreDeps:
+  - node-gyp
+
+# Dockerfile specific
+dockerfile:
+  enabled: true
+
+# Docker Compose
+docker-compose:
+  enabled: true
+
+# Python requirements
+python:
+  enabled: true
+
+# Node.js/npm
+npm:
+  enabled: true
+
+# .NET/NuGet
+csharp:
+  enabled: true
+
+# Kubernetes manifests
+kubernetes:
+  enabled: true

@@ -1,0 +1,155 @@
+---
+# Role for Vote Service
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vote-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["db-secret"]
+  verbs: ["get"]
+
+---
+# RoleBinding for Vote Service
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vote-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: vote-role
+subjects:
+- kind: ServiceAccount
+  name: vote
+  namespace: default
+
+---
+# Role for Result Service
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: result-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["db-secret"]
+  verbs: ["get"]
+
+---
+# RoleBinding for Result Service
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: result-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: result-role
+subjects:
+- kind: ServiceAccount
+  name: result
+  namespace: default
+
+---
+# Role for Worker Service
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: worker-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["db-secret"]
+  verbs: ["get"]
+
+---
+# RoleBinding for Worker Service
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: worker-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: worker-role
+subjects:
+- kind: ServiceAccount
+  name: worker
+  namespace: default
+
+---
+# Role for Database
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: db-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["db-secret"]
+  verbs: ["get"]
+
+---
+# RoleBinding for Database
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: db-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: db-role
+subjects:
+- kind: ServiceAccount
+  name: db
+  namespace: default
+
+---
+# Role for Redis
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: redis-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+
+---
+# RoleBinding for Redis
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: redis-rolebinding
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: redis-role
+subjects:
+- kind: ServiceAccount
+  name: redis
+  namespace: default
